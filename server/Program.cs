@@ -27,7 +27,6 @@ public class Setting
     public string? ClientIPAddress { get; set; }
 }
 
-
 class ServerUDP
 {
     static string configFile = @"../Setting.json";
@@ -35,48 +34,97 @@ class ServerUDP
     static Setting? setting = JsonSerializer.Deserialize<Setting>(configContent);
 
     // TODO: [Read the JSON file and return the list of DNSRecords]
+    static List<DNSRecord> dnsRecords = JsonSerializer.Deserialize<List<DNSRecord>>(File.ReadAllText("DNSrecords.json"));
 
-
-
+    static Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+    static EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
+    static byte[] buffer = new byte[4096];
+    static int ackCount = 0;
 
     public static void start()
     {
-
-
         // TODO: [Create a socket and endpoints and bind it to the server IP address and port number]
+        IPEndPoint serverEP = new IPEndPoint(IPAddress.Parse(setting.ServerIPAddress), setting.ServerPortNumber);
+        serverSocket.Bind(serverEP);
 
+        Console.WriteLine("Server is running");
 
+        while (true)
+        {
+            // TODO:[Receive and print a received Message from the client]
+            var incoming = ReceiveMessage();
+            Console.WriteLine("\nClient To Server Received: " + incoming.MsgType);
 
-        // TODO:[Receive and print a received Message from the client]
+            // Vervangen van switch door if-else
+            if (incoming.MsgType == MessageType.Hello)
+            {
+                var welcome = new Message
+                {
+                    MsgId = incoming.MsgId + 1,
+                    MsgType = MessageType.Welcome,
+                    Content = "Welcome from server"
+                };
+                SendMessage(welcome);
+            }
+            else if (incoming.MsgType == MessageType.DNSLookup)
+            {
+                var query = JsonSerializer.Deserialize<DNSRecord>(incoming.Content.ToString());
+                Console.WriteLine("DNS Lookup Request:" + query.Name + " (" + query.Type + ")");
 
+                var match = dnsRecords.FirstOrDefault(r => r.Type == query.Type && r.Name == query.Name);
 
+                if (match != null)
+                {
+                    var response = new Message
+                    {
+                        MsgId = incoming.MsgId,
+                        MsgType = MessageType.DNSLookupReply,
+                        Content = match
+                    };
+                    SendMessage(response);
+                }
+                else
+                {
+                    var error = new Message
+                    {
+                        MsgId = new Random().Next(1000, 9999),
+                        MsgType = MessageType.Error,
+                        Content = "Domain not found"
+                    };
+                    SendMessage(error);
+                }
+            }
+            else if (incoming.MsgType == MessageType.Ack)
+            {
+                Console.WriteLine("ACK message received for MsgId:" + incoming.Content);
+                ackCount++;
 
-
-        // TODO:[Receive and print Hello]
-
-
-
-        // TODO:[Send Welcome to the client]
-
-
-        // TODO:[Receive and print DNSLookup]
-
-
-        // TODO:[Query the DNSRecord in Json file]
-
-        // TODO:[If found Send DNSLookupReply containing the DNSRecord]
-
-
-
-        // TODO:[If not found Send Error]
-
-
-        // TODO:[Receive Ack about correct DNSLookupReply from the client]
-
-
-        // TODO:[If no further requests receieved send End to the client]
-
+                if (ackCount == 4)
+                {
+                    var endMsg = new Message
+                    {
+                        MsgId = new Random().Next(10000, 99999),
+                        MsgType = MessageType.End,
+                        Content = "DNS resolution completed"
+                    };
+                    SendMessage(endMsg);
+                }
+            }
+        }
     }
 
+    static Message ReceiveMessage()
+    {
+        int len = serverSocket.ReceiveFrom(buffer, ref clientEP);
+        string json = Encoding.UTF8.GetString(buffer, 0, len);
+        return JsonSerializer.Deserialize<Message>(json);
+    }
 
+    static void SendMessage(Message msg)
+    {
+        string json = JsonSerializer.Serialize(msg);
+        byte[] data = Encoding.UTF8.GetBytes(json);
+        serverSocket.SendTo(data, clientEP);
+        Console.WriteLine("Server To Client Sent: " + msg.MsgType);
+    }
 }
