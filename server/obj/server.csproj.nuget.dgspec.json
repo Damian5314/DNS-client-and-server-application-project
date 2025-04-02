@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\damia\\OneDrive\\Documenten\\school\\HBO\\Networking\\DNS-client-and-server-application-project\\server\\server.csproj": {}
+    "C:\\Users\\Wisha\\Downloads\\DNS-client-and-server-application-project\\server\\server.csproj": {}
   },
   "projects": {
-    "C:\\Users\\damia\\OneDrive\\Documenten\\school\\HBO\\Networking\\DNS-client-and-server-application-project\\server\\server.csproj": {
+    "C:\\Users\\Wisha\\Downloads\\DNS-client-and-server-application-project\\server\\server.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\damia\\OneDrive\\Documenten\\school\\HBO\\Networking\\DNS-client-and-server-application-project\\server\\server.csproj",
+        "projectUniqueName": "C:\\Users\\Wisha\\Downloads\\DNS-client-and-server-application-project\\server\\server.csproj",
         "projectName": "server",
-        "projectPath": "C:\\Users\\damia\\OneDrive\\Documenten\\school\\HBO\\Networking\\DNS-client-and-server-application-project\\server\\server.csproj",
-        "packagesPath": "C:\\Users\\damia\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\damia\\OneDrive\\Documenten\\school\\HBO\\Networking\\DNS-client-and-server-application-project\\server\\obj\\",
+        "projectPath": "C:\\Users\\Wisha\\Downloads\\DNS-client-and-server-application-project\\server\\server.csproj",
+        "packagesPath": "C:\\Users\\Wisha\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Wisha\\Downloads\\DNS-client-and-server-application-project\\server\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\damia\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Wisha\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"

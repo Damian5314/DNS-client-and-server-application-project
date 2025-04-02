@@ -8,19 +8,19 @@
     "net8.0": []
   },
   "packageFolders": {
-    "C:\\Users\\damia\\.nuget\\packages\\": {}
+    "C:\\Users\\Wisha\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\damia\\OneDrive\\Documenten\\school\\HBO\\Networking\\DNS-client-and-server-application-project\\client\\client.csproj",
+      "projectUniqueName": "c:\\Users\\Wisha\\Downloads\\DNS-client-and-server-application-project\\client\\client.csproj",
       "projectName": "client",
-      "projectPath": "C:\\Users\\damia\\OneDrive\\Documenten\\school\\HBO\\Networking\\DNS-client-and-server-application-project\\client\\client.csproj",
-      "packagesPath": "C:\\Users\\damia\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\damia\\OneDrive\\Documenten\\school\\HBO\\Networking\\DNS-client-and-server-application-project\\client\\obj\\",
+      "projectPath": "c:\\Users\\Wisha\\Downloads\\DNS-client-and-server-application-project\\client\\client.csproj",
+      "packagesPath": "C:\\Users\\Wisha\\.nuget\\packages\\",
+      "outputPath": "c:\\Users\\Wisha\\Downloads\\DNS-client-and-server-application-project\\client\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\damia\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\Wisha\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
