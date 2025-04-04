@@ -156,6 +156,6 @@ class ServerUDP
         string json = JsonSerializer.Serialize(msg);
         byte[] data = Encoding.UTF8.GetBytes(json);
         serverSocket.SendTo(data, clientEP);
-        Console.WriteLine("[Server -> Client] Sent: " + msg.MsgType);
+        Console.WriteLine("Server To Client Sent: " + msg.MsgType);
     }
 }
