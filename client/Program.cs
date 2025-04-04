@@ -9,6 +9,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using LibData;
 
+// SendTo();
 class Program
 {
     static void Main(string[] args)
@@ -24,16 +25,21 @@ public class Setting
     public int ClientPortNumber { get; set; }
     public string? ClientIPAddress { get; set; }
 }
-
 class ClientUDP
 {
-    //TODO: [Deserialize Setting.json]
     static string configFile = @"../Setting.json";
     static string configContent = File.ReadAllText(configFile);
-    static Setting? setting = JsonSerializer.Deserialize<Setting>(configContent);
+    static Setting? setting = JsonSerializer.Deserialize<Setting>(configContent) 
+                              ?? throw new InvalidOperationException("Invalid or missing setting configuration");
 
-    static IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Parse(setting.ServerIPAddress), setting.ServerPortNumber);
-    static IPEndPoint clientEndPoint = new IPEndPoint(IPAddress.Parse(setting.ClientIPAddress), setting.ClientPortNumber);
+    static IPEndPoint serverEndPoint = new IPEndPoint(
+        IPAddress.Parse(setting.ServerIPAddress ?? throw new ArgumentNullException("ServerIPAddress is null")),
+        setting.ServerPortNumber);
+
+    static IPEndPoint clientEndPoint = new IPEndPoint(
+        IPAddress.Parse(setting.ClientIPAddress ?? throw new ArgumentNullException("ClientIPAddress is null")),
+        setting.ClientPortNumber);
+
     static Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
     static EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
     static byte[] buffer = new byte[4096];
@@ -41,25 +47,9 @@ class ClientUDP
 
     public static void start()
     {
-        //TODO: [Create endpoints and socket]
-        clientSocket.Bind(clientEndPoint);
-        Console.WriteLine("Client started");
+        InitializeClient();
+        SendHelloAndReceiveWelcome();
 
-        //TODO: [Create and send HELLO]
-        var hello = new Message
-        {
-            MsgId = msgId++,
-            MsgType = MessageType.Hello,
-            Content = "Hello from client"
-        };
-        SendMessage(hello);
-
-        //TODO: [Receive and print Welcome from server]
-        var welcome = ReceiveMessage();
-        Console.WriteLine("Server TO Client± " + welcome.Content);
-        Console.WriteLine();
-
-        // TODO: [Create and send DNSLookup Message]
         List<DNSRecord> dnsQueries = new List<DNSRecord>
         {
             new DNSRecord { Type = "A", Name = "www.outlook.com" },
@@ -70,44 +60,74 @@ class ClientUDP
 
         foreach (var query in dnsQueries)
         {
-            var lookupMsg = new Message
-            {
-                MsgId = msgId++,
-                MsgType = MessageType.DNSLookup,
-                Content = query
-            };
-
-            SendMessage(lookupMsg);
-
-            //TODO: [Receive and print DNSLookupReply from server]
-            var reply = ReceiveMessage();
-            if (reply.MsgType == MessageType.DNSLookupReply)
-            {
-                Console.WriteLine("DNSLookUpReply: " + JsonSerializer.Serialize(reply.Content));
-            }
-            else if (reply.MsgType == MessageType.Error)
-            {
-                Console.WriteLine(" Error: " + reply.Content);
-            }
-
-            //TODO: [Send Acknowledgment to Server]
-            var ack = new Message
-            {
-                MsgId = msgId++,
-                MsgType = MessageType.Ack,
-                Content = lookupMsg.MsgId
-            };
-            SendMessage(ack);
-            Console.WriteLine();
-
-
-            // TODO: [Send next DNSLookup to server]
+            ProcessDNSQuery(query);
         }
-        //TODO: [Receive and print End from server]
+
+        ReceiveAndProcessEndMessage();
+    }
+
+    static void InitializeClient()
+    {
+        clientSocket.Bind(clientEndPoint);
+        Console.WriteLine("Client started");
+    }
+
+    static void SendHelloAndReceiveWelcome()
+    {
+        var hello = new Message
+        {
+            MsgId = msgId++,
+            MsgType = MessageType.Hello,
+            Content = "Hello from client"
+        };
+        SendMessage(hello);
+
+        var welcome = ReceiveMessage();
+        Console.WriteLine("Server To Client: " + welcome.Content);
+        Console.WriteLine();
+    }
+
+    static void ProcessDNSQuery(DNSRecord query)
+    {
+        var lookupMsg = new Message
+        {
+            MsgId = msgId++,
+            MsgType = MessageType.DNSLookup,
+            Content = query
+        };
+
+        SendMessage(lookupMsg);
+
+        var reply = ReceiveMessage();
+        if (reply.MsgType == MessageType.DNSLookupReply)
+        {
+            Console.WriteLine("DNS Reply: " + JsonSerializer.Serialize(reply.Content));
+        }
+        else if (reply.MsgType == MessageType.Error)
+        {
+            Console.WriteLine("Error " + reply.Content);
+        }
+
+        SendAcknowledgment(lookupMsg.MsgId);
+    }
+
+    static void SendAcknowledgment(int originalMsgId)
+    {
+        var ack = new Message
+        {
+            MsgId = msgId++,
+            MsgType = MessageType.Ack,
+            Content = originalMsgId
+        };
+        SendMessage(ack);
+    }
+
+    static void ReceiveAndProcessEndMessage()
+    {
         var end = ReceiveMessage();
         if (end.MsgType == MessageType.End)
         {
-            Console.WriteLine("Server To Client:" + end.Content);
+            Console.WriteLine("Server To Client: " + end.Content);
             clientSocket.Close();
         }
     }
@@ -124,6 +144,7 @@ class ClientUDP
     {
         int len = clientSocket.ReceiveFrom(buffer, ref remoteEP);
         string json = Encoding.UTF8.GetString(buffer, 0, len);
-        return JsonSerializer.Deserialize<Message>(json);
+        return JsonSerializer.Deserialize<Message>(json)
+               ?? throw new InvalidOperationException("Failed to deserialize message");
     }
 }
